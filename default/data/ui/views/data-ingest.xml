@@ -1,0 +1,163 @@
+<form version="1.1" theme="light" stylesheet="data-ingest.css">
+  <label>📦 Daily Ingest Metrics</label>
+  <description>Track daily ingest volume across source, sourcetype, host, and index. Toggle between MB and GB, and drill into specific sources.</description>
+  <search id="base_per_source_thruput_search">
+    <query>index=_internal source=*metrics.log group=per_source_thruput $host_tok$ $source_tok$
+            | eval series=if(like(series, "_%"), substr(series, 2), series) | eval size=if("$unit$"="GB", round(kb/1024/1024, 3), round(kb/1024, 2))
+    </query>
+    <earliest>$time_tok.earliest$</earliest>
+    <latest>$time_tok.latest$</latest>
+  </search>
+  <search id="base_per_sourcetype_thruput_search">
+    <query>index=_internal source=*metrics.log group=per_sourcetype_thruput $host_tok$ $source_tok$
+            | eval series=if(like(series, "_%"), substr(series, 2), series) | eval size=if("$unit$"="GB", round(kb/1024/1024, 3), round(kb/1024, 2))
+    </query>
+    <earliest>$time_tok.earliest$</earliest>
+    <latest>$time_tok.latest$</latest>
+  </search>
+  <search id="base_per_index_thruput_search">
+    <query>index=_internal source=*metrics.log group=per_index_thruput $host_tok$ $source_tok$
+            | eval series=if(like(series, "_%"), substr(series, 2), series) | eval size=if("$unit$"="GB", round(kb/1024/1024, 3), round(kb/1024, 2))
+    </query>
+    <earliest>$time_tok.earliest$</earliest>
+    <latest>$time_tok.latest$</latest>
+  </search>
+  <search id="base_per_host_thruput_search">
+    <query>index=_internal source=*metrics.log group=per_host_thruput $host_tok$ $source_tok$
+            | eval series=if(like(series, "_%"), substr(series, 2), series) | eval size=if("$unit$"="GB", round(kb/1024/1024, 3), round(kb/1024, 2))
+    </query>
+    <earliest>$time_tok.earliest$</earliest>
+    <latest>$time_tok.latest$</latest>
+  </search>
+  <fieldset submitButton="false">
+    <input type="time" token="time_tok" searchWhenChanged="true">
+      <label>Time Range</label>
+      <default>
+        <earliest>-7d@d</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="dropdown" token="span_tok" searchWhenChanged="true">
+      <label>Time Span</label>
+      <choice value="1h">1h</choice>
+      <choice value="4h">4h</choice>
+      <choice value="1d">1d</choice>
+      <default>1d</default>
+    </input>
+    <input type="dropdown" token="unit" searchWhenChanged="true">
+      <label>Metric Unit</label>
+      <choice value="MB">MB</choice>
+      <choice value="GB">GB</choice>
+      <default>GB</default>
+    </input>
+    <input type="text" token="host_tok" searchWhenChanged="true">
+      <label>Host</label>
+      <default>*</default>
+      <prefix>host=</prefix>
+    </input>
+    <input type="text" token="sourcetype_tok" searchWhenChanged="true">
+      <label>Sourcetype</label>
+      <default>*</default>
+      <prefix>sourcetype=</prefix>
+    </input>
+    <input type="text" token="source_tok" searchWhenChanged="true">
+      <label>Source (Series)</label>
+      <default>*</default>
+      <prefix>series=</prefix>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <html>
+        <h2 class="data-ingest-title">📊 Total Ingest</h2>
+      </html>
+      <single>
+        <search base="base_per_index_thruput_search">
+          <query>
+            | stats sum(size) as total_ingest
+          </query>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="unit">GB</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+        <h2 class="data-ingest-title">📊 Total Ingest Over Time</h2>
+      </html>
+      <chart>
+        <search base="base_per_index_thruput_search">
+          <query>
+            | timechart span=$span_tok$ sum(size) as total_ingest
+          </query>
+        </search>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.visibility">collapsed</option>
+        <option name="charting.chart">area</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+        <h2 class="data-ingest-title">📁 Ingest by Source</h2>
+      </html>
+      <chart>
+        <search base="base_per_source_thruput_search">
+          <query>
+            | timechart span=$span_tok$ sum(size) by series useother=false usenull=false
+          </query>
+        </search>
+        <option name="charting.chart">column</option>
+      </chart>
+    </panel>
+    <panel>
+      <html>
+        <h2 class="data-ingest-title">📄 Ingest by Sourcetype</h2>
+      </html>
+      <chart>
+        <search base="base_per_sourcetype_thruput_search">
+          <query>
+            | timechart span=$span_tok$ sum(size) as size by sourcetype
+          </query>
+        </search>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.visibility">collapsed</option>
+        <option name="charting.chart">column</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+        <h2 class="data-ingest-title">🖥️ Ingest by Host</h2>
+      </html>
+      <chart>
+        <search base="base_per_host_thruput_search">
+          <query>
+            | timechart span=$span_tok$ sum(size) by host
+          </query>
+        </search>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.visibility">collapsed</option>
+        <option name="charting.chart">column</option>
+      </chart>
+    </panel>
+    <panel>
+      <html>
+        <h2 class="data-ingest-title">🗂️ Ingest by Index</h2>
+      </html>
+      <chart>
+        <search base="base_per_index_thruput_search">
+          <query>
+            | timechart span=$span_tok$ sum(size) by series useother=false usenull=false
+          </query>
+        </search>
+        <option name="charting.chart">column</option>
+      </chart>
+    </panel>
+  </row>
+</form>

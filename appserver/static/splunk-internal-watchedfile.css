@@ -1,0 +1,27 @@
+/* Main dashboard title with glow */
+.custom-title {
+  font-size: 2em;
+  font-weight: bold;
+  color: #ff914d;  /* Bright orange */
+  margin: 20px 0 10px 0;
+  text-align: center;
+  text-shadow: 1px 1px #000;
+}
+
+/* Input and filter label text color */
+label, .input-label {
+  color: #89c9ff;  /* Soft sky blue */
+}
+
+/* Gradient panel headers with new color scheme */
+.config-tracker-title {
+  font-size: 1.5em;
+  font-weight: bold;
+  text-align: center;
+  color: #ffffff;
+  padding: 10px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #5a189a, #00b4d8);  /* Purple to teal */
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+  border: 1px solid #00b4d8;
+}

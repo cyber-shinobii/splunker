@@ -1,0 +1,121 @@
+<form version="1.1" theme="dark" stylesheet="splunk-internal-watchedfile.css">
+  <label>🔍 Watched File Activity</label>
+  <description>Monitor Splunk’s file monitoring behavior in real time. Track indexed files, detect delays, and troubleshoot inputs across hosts and sources.</description>
+  <search id="base_watched_file_search">
+    <query>index=_internal component=WatchedFile file=$file_tok$ event_message=$event_message_tok$ | eval file = replace(file, "'", "") | fields _time file event_message</query>
+    <earliest>$time_tok.earliest$</earliest>
+    <latest>$time_tok.latest$</latest>
+  </search>
+  <search id="base_tail_reader_search">
+    <query>index=_internal source="/opt/splunk/var/log/splunk/splunkd.log" component=TailReader file=$file_tok$ | eval file=replace(file, "'", "") | fields _time file event_message</query>
+    <earliest>$time_tok.earliest$</earliest>
+    <latest>$time_tok.latest$</latest>
+  </search>
+  <fieldset submitButton="false">
+    <input type="time" token="time_tok" searchWhenChanged="true">
+      <label>time</label>
+      <default>
+        <earliest>-7d@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="dropdown" token="time_span_tok" searchWhenChanged="true">
+      <label>span</label>
+      <choice value="1m">1m</choice>
+      <choice value="5m">5m</choice>
+      <choice value="15m">15m</choice>
+      <choice value="1h">1h</choice>
+      <choice value="4h">4h</choice>
+      <choice value="1d">1d</choice>
+      <default>1d</default>
+      <initialValue>1d</initialValue>
+    </input>
+    <input type="text" token="file_tok" searchWhenChanged="true">
+      <label>file</label>
+      <default>*</default>
+      <initialValue>*</initialValue>
+      <prefix>'</prefix>
+      <suffix>'</suffix>
+    </input>
+    <input type="text" token="event_message_tok" searchWhenChanged="true">
+      <label>event_message</label>
+      <default>*</default>
+      <prefix>"</prefix>
+      <suffix>"</suffix>
+      <initialValue>*</initialValue>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <html>
+        <h2 class="config-tracker-title">📈 Logs Watched Over Time</h2>
+      </html>
+      <chart>
+        <search base="base_watched_file_search">
+          <query>| timechart count by file useother=false span=$time_span_tok$</query>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+    <panel>
+      <html>
+        <h2 class="config-tracker-title">📊 Count of Logs Watched</h2>
+      </html>
+      <single>
+        <search base="base_watched_file_search">
+          <query>| stats dc(file) as file</query>
+        </search>
+        <option name="colorMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0x1182f3","0x0877a6","0x1182f3","0x1182f3","0x1182f3"]</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <html>
+        <h2 class="config-tracker-title">🛡️ TailReader Count</h2>
+      </html>
+      <single>
+        <search base="base_tail_reader_search">
+          <query>| stats dc(file) as file</query>
+        </search>
+        <option name="colorMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0x1182f3","0x0877a6","0x1182f3","0x1182f3","0x1182f3"]</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+        <h2 class="config-tracker-title">📄 Logs Watched</h2>
+      </html>
+      <table>
+        <search base="base_watched_file_search">
+          <query>| table _time file event_message | head 10</query>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+        <h2 class="config-tracker-title">📄 TailReader Details</h2>
+      </html>
+      <table>
+        <search base="base_tail_reader_search">
+          <query>| stats count by _time file event_message | fields - count | sort - _time</query>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+  </row>
+</form>

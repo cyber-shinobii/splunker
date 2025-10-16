@@ -1,0 +1,189 @@
+<form version="1.1" theme="dark" stylesheet="splunk-internal-audit-tracker.css">
+  <label>📑 Splunk Internal Audit</label>
+  <description>Track internal Splunk activity including configuration edits, user actions, and system-level changes for auditing and troubleshooting.</description>
+  <search id="base_internal_audit_search">
+    <query>index=_audit user=$user_tok$ action=$action_tok$ info=$info_tok$ | fields _time timestamp user action info app roles search </query>
+    <earliest>$time_tok.earliest$</earliest>
+    <latest>$time_tok.latest$</latest>
+  </search>
+  <search id="base_internal_audit_user_activity_search">
+    <query>index=_audit user=$user_tok$ action=search | table _time app user roles search </query>
+    <earliest>$time_tok.earliest$</earliest>
+    <latest>$time_tok.latest$</latest>
+  </search>
+  <fieldset submitButton="false">
+    <input type="time" token="time_tok" searchWhenChanged="true">
+      <label>time</label>
+      <default>
+        <earliest>-7d@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="dropdown" token="span_tok" searchWhenChanged="true">
+      <label>span</label>
+      <choice value="1m">1m</choice>
+      <choice value="5m">5m</choice>
+      <choice value="15m">15m</choice>
+      <choice value="1h">1h</choice>
+      <choice value="4h">4h</choice>
+      <choice value="1d">1d</choice>
+      <default>1d</default>
+      <prefix>"</prefix>
+      <suffix>"</suffix>
+      <initialValue>1d</initialValue>
+    </input>
+    <input type="multiselect" token="user_tok" searchWhenChanged="true">
+      <label>user</label>
+      <choice value="*">all</choice>
+      <default>*</default>
+      <initialValue>*</initialValue>
+      <valuePrefix>"</valuePrefix>
+      <valueSuffix>"</valueSuffix>
+      <delimiter> OR </delimiter>
+      <fieldForLabel>user</fieldForLabel>
+      <fieldForValue>user</fieldForValue>
+      <search>
+        <query>index=_audit | stats count by user</query>
+        <earliest>$time_tok.earliest$</earliest>
+        <latest>$time_tok.latest$</latest>
+      </search>
+    </input>
+    <input type="multiselect" token="action_tok" searchWhenChanged="true">
+      <label>action</label>
+      <choice value="*">all</choice>
+      <default>*</default>
+      <initialValue>*</initialValue>
+      <valuePrefix>"</valuePrefix>
+      <valueSuffix>"</valueSuffix>
+      <delimiter> OR </delimiter>
+      <fieldForLabel>action</fieldForLabel>
+      <fieldForValue>action</fieldForValue>
+      <search base="base_internal_audit_search">
+        <query>| stats count by action</query>
+      </search>
+    </input>
+    <input type="text" token="info_tok" searchWhenChanged="true">
+      <label>info</label>
+      <default>*</default>
+      <prefix>"</prefix>
+      <suffix>"</suffix>
+      <initialValue>*</initialValue>
+    </input>
+    <input type="text" token="search_tok" searchWhenChanged="true">
+      <label>search</label>
+      <default>*</default>
+      <prefix>"</prefix>
+      <suffix>"</suffix>
+      <initialValue>*</initialValue>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <html>
+        <h2 class="total-users-title">👥 Total Users</h2>
+      </html>
+      <single>
+        <search base="base_internal_audit_search">
+          <query>| stats dc(user) as user</query>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <html>
+        <h2 class="trend-title">📈 Trend by User</h2>
+      </html>
+      <chart>
+        <search base="base_internal_audit_search">
+          <query>| timechart count by user useother=false usenull=false span=$span_tok$</query>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+    <panel>
+      <html>
+        <h2 class="table-title">📋 Count by User</h2>
+      </html>
+      <table>
+        <search base="base_internal_audit_search">
+          <query>| stats count by user</query>
+        </search>
+        <option name="count">20</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+        <h2 class="total-actions-title">⚙️ Total Actions</h2>
+      </html>
+      <single>
+        <search base="base_internal_audit_search">
+          <query>| stats dc(action) as action</query>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <html>
+        <h2 class="trend-title">📊 Trend by Action</h2>
+      </html>
+      <chart>
+        <search base="base_internal_audit_search">
+          <query>| timechart count by action useother=false usenull=false span=$span_tok$</query>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+    <panel>
+      <html>
+        <h2 class="table-title">📄 Count by Action</h2>
+      </html>
+      <table>
+        <search base="base_internal_audit_search">
+          <query>| stats count by action | head 5</query>
+        </search>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+        <h2 class="table-title">🔍 Audit Table</h2>
+      </html>
+      <table>
+        <search base="base_internal_audit_search">
+          <query>| stats count by timestamp user action info | head 10</query>
+        </search>
+        <option name="count">20</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+        <h2 class="table-title"> 🧩 User Search Activity</h2>
+      </html>
+      <table>
+        <search base="base_internal_audit_search">
+          <query>| stats count by _time app user roles search | head 10 | fields - count</query>
+        </search>
+        <option name="count">20</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+</form>

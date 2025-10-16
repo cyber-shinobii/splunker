@@ -1,0 +1,183 @@
+<form version="1.1" theme="dark" stylesheet="splunk-config-changes.css">
+  <label>🔄 Splunk Config Changes</label>
+  <description>Track and visualize configuration changes across your Splunk environment, including props, transforms, inputs, and outputs. Use this dashboard to monitor file activity by host, app, and file path.</description>
+  <search id="base_splunk_config_tracker_search">
+    <query>index=_configtracker
+| eval app = mvindex(split('data.path',"/"),-3),
+        config = replace(mvindex(split('data.path',"/"),-1),".conf","") 
+| rename data.action as action, data.path as path, data.changes{}.properties{}.name as property_name, data.changes{}.properties{}.old_value as old_value, data.changes{}.properties{}.new_value as new_value, data.changes{}.stanza as stanza date.modtime as modtime 
+| eval old_value = mvmap(old_value, if(old_value=="", "NA", old_value)),
+        new_value = mvmap(new_value, if(new_value=="", "NA", new_value))
+| eval combined = mvzip(property_name, mvzip(old_value, new_value, ","), ",")
+| mvexpand combined
+| eval property_name=mvindex(split(combined, ","), 0),
+        old_value=mvindex(split(combined, ","), 1),
+        new_value=mvindex(split(combined, ","), 2)
+| join modtime [search index=_audit | table modtime user ]
+| fields _time app user action config stanza property_name old_value new_value 
+| search app=$app_tok$ user=$user_tok$ action=$action_tok$ config=$config_tok$ property_name=$property_name_tok$ old_value=$old_value_tok$ new_value=$new_value_tok$ stanza=$stanza_tok$
+    </query>
+    <earliest>$time_tok.earliest$</earliest>
+    <latest>$time_tok.latest$</latest>
+  </search>
+  <fieldset submitButton="false">
+    <input type="time" token="time_tok" searchWhenChanged="true">
+      <label>time</label>
+      <default>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="dropdown" token="span_tok" searchWhenChanged="true">
+      <label>span</label>
+      <choice value="1m">1m</choice>
+      <choice value="5m">5m</choice>
+      <choice value="15m">15m</choice>
+      <choice value="1h">1h</choice>
+      <choice value="4h">4h</choice>
+      <choice value="1d">1d</choice>
+      <default>1d</default>
+      <prefix>"</prefix>
+      <suffix>"</suffix>
+      <initialValue>1d</initialValue>
+    </input>
+    <input type="multiselect" token="user_tok" searchWhenChanged="true">
+      <label>user</label>
+      <choice value="*">all</choice>
+      <default>*</default>
+      <initialValue>*</initialValue>
+      <valuePrefix>"</valuePrefix>
+      <valueSuffix>"</valueSuffix>
+      <delimiter> OR </delimiter>
+      <fieldForLabel>user</fieldForLabel>
+      <fieldForValue>user</fieldForValue>
+      <search base="base_splunk_config_tracker_search">
+        <query>| stats count by user</query>
+      </search>
+    </input>
+    <input type="multiselect" token="action_tok" searchWhenChanged="true">
+      <label>action</label>
+      <choice value="*">all</choice>
+      <default>*</default>
+      <initialValue>*</initialValue>
+      <valuePrefix>"</valuePrefix>
+      <valueSuffix>"</valueSuffix>
+      <delimiter> OR </delimiter>
+      <fieldForLabel>action</fieldForLabel>
+      <fieldForValue>action</fieldForValue>
+      <search base="base_splunk_config_tracker_search">
+        <query>| stats count by action</query>
+      </search>
+    </input>
+    <input type="multiselect" token="config_tok" searchWhenChanged="true">
+      <label>config</label>
+      <choice value="*">all</choice>
+      <valuePrefix>"</valuePrefix>
+      <valueSuffix>"</valueSuffix>
+      <delimiter> OR </delimiter>
+      <fieldForLabel>config</fieldForLabel>
+      <fieldForValue>config</fieldForValue>
+      <search base="base_splunk_config_tracker_search">
+        <query> | stats count by config</query>
+      </search>
+      <default>*</default>
+      <initialValue>*</initialValue>
+    </input>
+    <input type="text" token="property_name_tok" searchWhenChanged="true">
+      <label>property_name</label>
+      <default>*</default>
+      <prefix>"</prefix>
+      <suffix>"</suffix>
+      <initialValue>*</initialValue>
+    </input>
+    <input type="text" token="app_tok" searchWhenChanged="true">
+      <label>app</label>
+      <default>*</default>
+      <prefix>"</prefix>
+      <suffix>"</suffix>
+      <initialValue>*</initialValue>
+    </input>
+    <input type="text" token="old_value_tok" searchWhenChanged="true">
+      <label>old_value</label>
+      <default>*</default>
+      <prefix>"</prefix>
+      <suffix>"</suffix>
+      <initialValue>*</initialValue>
+    </input>
+    <input type="text" token="new_value_tok" searchWhenChanged="true">
+      <label>new_value</label>
+      <default>*</default>
+      <prefix>"</prefix>
+      <suffix>"</suffix>
+      <initialValue>*</initialValue>
+    </input>
+    <input type="text" token="stanza_tok" searchWhenChanged="true">
+      <label>stanza</label>
+      <default>*</default>
+      <prefix>"</prefix>
+      <suffix>"</suffix>
+      <initialValue>*</initialValue>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <html>
+        <h2 class="config-tracker-title">📈 Changes by Action</h2>
+      </html>
+      <chart>
+        <search base="base_splunk_config_tracker_search">
+          <query>| timechart count by action span=$span_tok$</query>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+    <panel>
+      <html>
+        <h2 class="config-tracker-title">👤 Changes by User</h2>
+      </html>
+      <chart>
+        <search base="base_splunk_config_tracker_search">
+          <query>| timechart count by user span=$span_tok$</query>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+    <panel>
+      <html>
+        <h2 class="config-tracker-title">⚙️ Changes by Config</h2>
+      </html>
+      <chart>
+        <search base="base_splunk_config_tracker_search">
+          <query>| timechart count by config span=$span_tok$</query>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+        <h2 class="config-tracker-title">📄 All Config Changes</h2>
+      </html>
+      <table>
+        <search base="base_splunk_config_tracker_search">
+          <query>| table _time app user action config stanza property_name old_value new_value | head 10</query>
+        </search>
+        <option name="count">100</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+</form>

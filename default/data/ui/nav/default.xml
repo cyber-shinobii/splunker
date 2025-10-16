@@ -1,0 +1,36 @@
+<nav search_view="search" color="#5CC05C">
+
+  <collection label="Default">
+    <view name="search" default="true" />
+    <view name="analytics_workspace" />
+    <view name="datasets" />
+    <view name="reports" />
+    <view name="alerts" />
+    <view name="dashboards" />
+  </collection>
+
+  <collection label="Internal Logs">
+    <view name="splunk-internal-audit-tracker" />
+    <view name="splunk-config-changes" />
+    <view name="splunk-internal-watchedfile" />
+    <view name="splunk-queue-monitor" />
+  </collection>
+
+  <collection label="Troubleshooting">
+    <view name="data-explorer" />
+  </collection>
+
+  <collection label="Splunk Jobs">
+    <view name="scheduled-jobs-tracker" />
+  </collection>
+
+  <collection label="Data Ingests/Connections">
+    <view name="tcpout-connection-metrics" />
+    <view name="data-ingest" />
+  </collection>
+
+  <collection label="OS">
+    <view name="linux-unix-overview" />
+  </collection>
+
+</nav>

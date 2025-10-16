@@ -1,0 +1,68 @@
+<form version="1.1" theme="dark">
+  <label>Splunk Data Explorer</label>
+  <description>Quickly locate and verify which indexes, sourcetypes, and hosts are sending data into Splunk.</description>
+  <search id="base_search">
+    <query> | tstats summariesonly=f count as events dc(host) as hostcount values(host) as Hosts earliest(_time) as earliest latest(_time) as latest
+  where index=$index_tok$ host=$host_tok$ sourcetype=$sourcetype_tok$
+  by index sourcetype host
+| search index=$index_tok$ sourcetype=$sourcetype_tok$ host=$host_tok$</query>
+  </search>
+  <fieldset submitButton="true" autoRun="false">
+    <input type="time" token="time_tok" searchWhenChanged="true">
+      <label>Time</label>
+      <default>
+        <earliest>-15m</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="text" token="index_tok" searchWhenChanged="true">
+      <label>Index</label>
+      <default>*</default>
+      <prefix>"</prefix>
+      <suffix>"</suffix>
+      <initialValue>*</initialValue>
+    </input>
+    <input type="text" token="sourcetype_tok" searchWhenChanged="true">
+      <label>Sourcetype</label>
+      <default>*</default>
+      <prefix>"</prefix>
+      <suffix>"</suffix>
+      <initialValue>*</initialValue>
+    </input>
+    <input type="text" token="host_tok" searchWhenChanged="true">
+      <label>Host</label>
+      <default>*</default>
+      <prefix>"</prefix>
+      <suffix>"</suffix>
+      <initialValue>*</initialValue>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <table>
+        <search base="base_search">
+          <query>
+| eval earliest=strftime(earliest,"%Y-%m-%d %H:%M:%S"), latest=strftime(latest,"%Y-%m-%d %H:%M:%S")
+| stats sum(events) as events dc(host) as hostcount values(Hosts) as Hosts min(earliest) as earliest_event max(latest) as latest_event by index sourcetype host
+| rename events as "Total Events"
+| table index sourcetype hostcount Hosts earliest_event latest_event "Total Events"</query>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <search base="base_search">
+          <query>
+| eval earliest=strftime(earliest,"%Y-%m-%d %H:%M:%S"), latest=strftime(latest,"%Y-%m-%d %H:%M:%S")
+| stats dc(host) as "Unique Hosts" dc(sourcetype) as "Unique Sourcetypes" dc(index) as "Unique Indexes"</query>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+  </row>
+</form>

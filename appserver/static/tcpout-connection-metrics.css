@@ -1,0 +1,37 @@
+/* dashboard_tcpout_custom.css */
+
+.cool-title {
+  font-size: 1.6em;
+  font-weight: bold;
+  color: #33e0ff;
+  text-align: center;
+  text-shadow: 1px 1px 3px #000;
+  margin-bottom: 10px;
+  padding: 6px;
+  background: linear-gradient(135deg, #1f1f1f, #3c5a92);
+  border-radius: 6px;
+  border: 1px solid #4ca1af;
+}
+
+label,
+.input-label {
+  color: #dddddd;
+  font-weight: bold;
+}
+
+.dashboard-body {
+  background-color: #1e1e2f;
+  color: #ffffff;
+}
+
+input,
+.dropdown {
+  background-color: #333;
+  color: #fff;
+}
+
+.dashboard-panel {
+  border: 1px solid #4ca1af;
+  border-radius: 8px;
+  box-shadow: 2px 2px 6px #111;
+}

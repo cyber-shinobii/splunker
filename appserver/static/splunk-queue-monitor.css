@@ -1,0 +1,32 @@
+/* splunk-queue-monitor.css */
+
+/* General styling for panel titles */
+.custom-panel-title {
+  font-size: 1.6em;
+  font-weight: 700;
+  text-align: center;
+  color: #ffffff;
+  background: linear-gradient(to right, #8e44ad, #3498db);
+  padding: 10px 15px;
+  margin: 10px 0;
+  border-radius: 6px;
+  border: 1px solid #6c5ce7;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+/* Optional enhancements for dark theme input labels */
+label,
+.input-label {
+  color: #ccc;
+  font-weight: 600;
+}
+
+/* Optional enhancements for dashboard background consistency */
+body {
+  background-color: #1e1e2f !important;
+}
+
+.dashboard-body .fieldset {
+  border-color: #555;
+}

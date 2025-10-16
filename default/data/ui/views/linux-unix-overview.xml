@@ -1,0 +1,250 @@
+<form version="1.1" theme="dark" stylesheet="linux-unix-overview.css">
+  <label>Linux System Health Overview</label>
+  <description>Monitor Linux system activity using normalized data from the Splunk Add-on for Unix and Linux.</description>
+  <!-- Base Searches -->
+  <search id="base_who_is_search">
+    <query>index=main sourcetype=who $host_tok$ | eval user=USERNAME | search $user_tok$</query>
+    <earliest>$time_tok.earliest$</earliest>
+    <latest>$time_tok.latest$</latest>
+  </search>
+  <search id="base_uptime_search">
+    <query>index=main sourcetype="Unix:Uptime" $host_tok$ | eval uptime_days = round(uptime/86400, 2)." days"</query>
+    <earliest>$time_tok.earliest$</earliest>
+    <latest>$time_tok.latest$</latest>
+  </search>
+  <search id="base_ps_search">
+    <query>index=main sourcetype=ps $host_tok$ $user_tok$ process_name=$process_name_tok$ | fields _time host user process_name pid pctCPU pctMEM mem_used cpu_time</query>
+    <earliest>$time_tok.earliest$</earliest>
+    <latest>$time_tok.latest$</latest>
+  </search>
+  <search id="base_top_search">
+    <query>index=main sourcetype=top $host_tok$ $user_tok$ COMMAND=$command_tok$ | fields _time host user PID COMMAND pctCPU pctMEM cpuTIME </query>
+    <earliest>$time_tok.earliest$</earliest>
+    <latest>$time_tok.latest$</latest>
+  </search>
+  <search id="base_lastlog_search">
+    <query>index=main sourcetype=lastlog $host_tok$ | eval user=USERNAME, src_ip=FROM | search $user_tok$</query>
+    <earliest>$time_tok.earliest$</earliest>
+    <latest>$time_tok.latest$</latest>
+  </search>
+  <!-- Inputs -->
+  <!-- Section: User Login Activity -->
+  <!-- Section: Process Insights (ps) -->
+  <!-- Section: Live System Activity (top) -->
+  <fieldset submitButton="false">
+    <input type="time" token="time_tok" searchWhenChanged="true">
+      <label>Time</label>
+      <default>
+        <earliest>-7d@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="multiselect" token="host_tok" searchWhenChanged="true">
+      <label>Host</label>
+      <prefix>host IN (</prefix>
+      <delimiter>, </delimiter>
+      <fieldForLabel>host</fieldForLabel>
+      <fieldForValue>host</fieldForValue>
+      <search>
+        <query>| tstats count where index=main by host</query>
+        <earliest>$time_tok.earliest$</earliest>
+        <latest>$time_tok.latest$</latest>
+      </search>
+      <choice value="*">All</choice>
+      <default>*</default>
+      <suffix>)</suffix>
+      <initialValue>*</initialValue>
+      <valuePrefix>"</valuePrefix>
+      <valueSuffix>"</valueSuffix>
+    </input>
+    <input type="multiselect" token="user_tok" searchWhenChanged="true">
+      <label>User</label>
+      <default>*</default>
+      <prefix>user IN (</prefix>
+      <suffix>)</suffix>
+      <initialValue>*</initialValue>
+      <choice value="*">All</choice>
+      <valuePrefix>"</valuePrefix>
+      <valueSuffix>"</valueSuffix>
+      <delimiter>, </delimiter>
+      <fieldForLabel>username</fieldForLabel>
+      <fieldForValue>username</fieldForValue>
+      <search>
+        <query>index=main | eval username=coalesce(USER, user) | stats count by username</query>
+        <earliest>$time_tok.earliest$</earliest>
+        <latest>$time_tok.latest$</latest>
+      </search>
+    </input>
+    <input type="dropdown" token="span_tok" searchWhenChanged="true">
+      <label>Span</label>
+      <choice value="1min">1min</choice>
+      <choice value="5min">5min</choice>
+      <choice value="15min">15min</choice>
+      <choice value="1h">1h</choice>
+      <choice value="4h">4h</choice>
+      <choice value="1d">1d</choice>
+      <default>1d</default>
+      <prefix>"</prefix>
+      <suffix>"</suffix>
+      <initialValue>1d</initialValue>
+    </input>
+    <input type="text" token="process_name_tok" searchWhenChanged="true">
+      <label>process_name</label>
+      <default>*</default>
+      <prefix>"</prefix>
+      <suffix>"</suffix>
+      <initialValue>*</initialValue>
+    </input>
+    <input type="text" token="command_tok" searchWhenChanged="true">
+      <label>COMMAND</label>
+      <default>*</default>
+      <prefix>"</prefix>
+      <suffix>"</suffix>
+      <initialValue>*</initialValue>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <html>
+        <h2 class="section-header">👥 User Login Activity</h2>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>🧑‍💻 Logged In Users (who)</title>
+      <chart>
+        <search base="base_who_is_search">
+          <query>| stats count by user | eval user='user' . " (" . count . ")" | sort - count | head 10</query>
+        </search>
+        <option name="charting.chart">pie</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>👨🏿‍💼 Last Logins (lastlog)</title>
+      <table>
+        <search base="base_lastlog_search">
+          <query>| stats count by _time user src_ip host | fields - count | head 5</query>
+        </search>
+      </table>
+    </panel>
+    <panel>
+      <title>🔁 System Uptime</title>
+      <chart>
+        <search base="base_uptime_search">
+          <query>| timechart avg(uptime_days) as uptime_days by host span=$span_tok$</query>
+        </search>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.visibility">collapsed</option>
+        <option name="charting.chart">column</option>
+        <option name="charting.drilldown">all</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+        <h2 class="section-header">🧠 Process Insights (ps)</h2>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>📊 Process Count by User</title>
+      <chart>
+        <search base="base_ps_search">
+          <query>| stats count by user | eval user=user . " (" . count . ")" | sort -count</query>
+        </search>
+        <option name="charting.chart">pie</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>💾 Top Processes by CPU Usage</title>
+      <chart>
+        <search base="base_ps_search">
+          <query>| timechart avg(pctCPU) as avg_cpu by process_name span=$span_tok$ useother=false usenull=false</query>
+        </search>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.visibility">collapsed</option>
+        <option name="charting.chart">column</option>
+        <option name="charting.drilldown">all</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>⚙️ Top Processes by Memory Usage</title>
+      <chart>
+        <search base="base_ps_search">
+          <query>| timechart avg(pctMEM) as avg_mem by process_name span=$span_tok$ useother=false usenull=false</query>
+        </search>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.visibility">collapsed</option>
+        <option name="charting.chart">column</option>
+        <option name="charting.drilldown">all</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>🧠 Detailed Process List</title>
+      <table>
+        <search base="base_ps_search">
+          <query>| stats count by _time host user process_name pid pctCPU pctMEM mem_used cpu_time | fields - count | head 10</query>
+        </search>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+        <h2 class="section-header">📈 Live System Activity (top)</h2>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>🔥 Process Count by User</title>
+      <chart>
+        <search base="base_top_search">
+          <query>| stats count by user | eval user=user . " (" . count . ")" | sort -count</query>
+        </search>
+        <option name="charting.chart">pie</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>🔸 CPU Usage Over Time</title>
+      <chart>
+        <search base="base_top_search">
+          <query>| timechart span=$span_tok$ avg(pctCPU) by COMMAND limit=5 useother=false usenull=false</query>
+        </search>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.visibility">collapsed</option>
+        <option name="charting.chart">column</option>
+        <option name="charting.drilldown">all</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>🌊 Memory Usage Over Time</title>
+      <chart>
+        <search base="base_top_search">
+          <query>| timechart span=$span_tok$ avg(pctMEM) as mem_usage by COMMAND limit=5 useother=false usenull=false</query>
+        </search>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.visibility">collapsed</option>
+        <option name="charting.chart">column</option>
+        <option name="charting.drilldown">all</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>📊 Live Table of Top Processes</title>
+      <table>
+        <search base="base_top_search">
+          <query>| stats count by _time host user PID COMMAND pctCPU pctMEM cpuTIME | fields - count | sort -_time | head 7</query>
+        </search>
+      </table>
+    </panel>
+  </row>
+</form>

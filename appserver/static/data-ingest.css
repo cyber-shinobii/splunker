@@ -1,0 +1,73 @@
+/* Global font and spacing */
+.dashboard-body {
+  font-family: "Segoe UI", "Helvetica Neue", sans-serif;
+  background-color: #f9f9f9;
+}
+
+/* Panel Titles */
+.dashboard-panel .panel-head h2,
+.dashboard-panel .panel-title {
+  color: #2b2b2b;
+  font-size: 20px;
+  font-weight: 600;
+  text-transform: capitalize;
+  border-bottom: 2px solid #4285f4;
+  padding-bottom: 4px;
+  margin-bottom: 10px;
+}
+
+/* Description and Filters */
+.dashboard-header .description,
+fieldset input,
+fieldset label {
+  color: #333;
+  font-size: 14px;
+}
+
+/* Input Labels */
+.input label {
+  font-weight: 600;
+  color: #444;
+}
+
+/* Time range and dropdown input boxes */
+input[type="text"],
+input[type="dropdown"],
+select {
+  background-color: #ffffff;
+  border: 1px solid #cccccc;
+  border-radius: 4px;
+  padding: 6px;
+}
+
+/* Chart visual tweaks */
+.highcharts-background {
+  fill: #ffffff;
+}
+.highcharts-title {
+  fill: #333;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+/* Row and Panel Styling */
+.dashboard-row {
+  margin-top: 15px;
+}
+.dashboard-panel {
+  background-color: #ffffff;
+  border-radius: 6px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  padding: 15px;
+}
+
+/* Improve spacing between rows/panels */
+.dashboard-row + .dashboard-row {
+  margin-top: 25px;
+}
+
+/* Optional hover effect for visual engagement */
+.dashboard-panel:hover {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transition: box-shadow 0.3s ease;
+}

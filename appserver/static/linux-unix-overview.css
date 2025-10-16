@@ -1,0 +1,117 @@
+/* ==========================
+   Dashboard Section Headers
+   ========================== */
+.custom-title {
+  font-size: 2em;
+  font-weight: bold;
+  color: #2eccff;
+  margin: 20px 0 10px 0;
+  text-align: center;
+  text-shadow: 1px 1px #000;
+}
+
+.section-header {
+  font-size: 1.6em;
+  font-weight: bold;
+  color: #ffffff;
+  padding: 10px;
+  text-align: center;
+  background: linear-gradient(to right, #34495e, #2c3e50);
+  border-radius: 6px;
+  margin-top: 20px;
+  margin-bottom: 15px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  text-shadow: 1px 1px 2px #000;
+}
+
+/* ==========================
+   Panel Titles
+   ========================== */
+h2.custom-panel-title,
+.panel-title {
+  font-size: 1.4em;
+  font-weight: bold;
+  color: #f1c40f;
+  margin-bottom: 10px;
+  padding-left: 8px;
+  text-shadow: 0.5px 0.5px #000;
+}
+
+/* ==========================
+   Inputs (Time/Host/User)
+   ========================== */
+label,
+.input-label {
+  color: #333;
+  font-weight: bold;
+}
+
+input,
+select,
+.splunk-choice-input {
+  background-color: #fff !important;
+  color: #000 !important;
+  border: 1px solid #ccc !important;
+  border-radius: 4px !important;
+  padding: 6px !important;
+}
+
+input:focus,
+select:focus {
+  border-color: #00c3ff !important;
+  outline: none !important;
+}
+
+/* ==========================
+   Tables
+   ========================== */
+.table,
+.splTable {
+  font-size: 14px;
+  background-color: #ffffff !important;
+  color: #000 !important;
+}
+
+.table thead th {
+  background-color: #f5f5f5 !important;
+  color: #2c3e50 !important;
+  font-weight: bold;
+  border-bottom: 1px solid #ccc;
+}
+
+.table tbody tr:hover {
+  background-color: #f0f0f0 !important;
+}
+
+.table td {
+  padding: 6px 12px;
+  vertical-align: middle;
+  border-top: 1px solid #ddd;
+}
+
+/* ==========================
+   Chart background: make it light/transparent
+   ========================== */
+.highcharts-background {
+  fill: transparent !important;
+}
+
+.highcharts-container {
+  background-color: transparent !important;
+}
+
+/* ==========================
+   Axis, label, legend font colors
+   ========================== */
+.highcharts-axis-labels text,
+.highcharts-title,
+.highcharts-subtitle,
+.highcharts-legend-item text {
+  fill: #333 !important;
+}
+
+/* Optional highlight for CPU/memory columns */
+td[data-field="pctCPU"],
+td[data-field="pctMEM"] {
+  font-weight: bold;
+}

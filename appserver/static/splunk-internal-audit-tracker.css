@@ -1,0 +1,51 @@
+/* Total Users - Blue Theme */
+.total-users-title {
+  font-size: 28px;
+  font-weight: 800;
+  text-align: center;
+  color: #FFFFFF;
+  background: linear-gradient(135deg, #00416A, #6DA3D4);
+  padding: 12px;
+  border-radius: 8px;
+  border: 2px solid #3498DB;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+/* Total Actions - Amber Theme */
+.total-actions-title {
+  font-size: 28px;
+  font-weight: 800;
+  text-align: center;
+  color: #000000;
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  padding: 12px;
+  border-radius: 8px;
+  border: 2px solid #FFC300;
+  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
+}
+
+/* Trend Panels - Deep Gray Theme */
+.trend-title {
+  font-size: 28px;
+  font-weight: 800;
+  text-align: center;
+  color: #FFFFFF;
+  background: #1C2833;
+  padding: 12px;
+  border-radius: 8px;
+  border: 2px solid #5D6D7E;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+/* Tables - Muted Purple */
+.table-title {
+  font-size: 28px;
+  font-weight: 800;
+  text-align: center;
+  color: #FFFFFF;
+  background: #3B3F5C;
+  padding: 12px;
+  border-radius: 8px;
+  border: 2px solid #6C5CE7;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+}

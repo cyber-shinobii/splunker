@@ -1,0 +1,39 @@
+/* splunk-config-tracker.css */
+
+/* Title for main dashboard header */
+.custom-title {
+  font-size: 2em;
+  font-weight: bold;
+  color: #32b3ff;
+  margin: 20px 0 10px 0;
+  text-align: center;
+  text-shadow: 1px 1px #000;
+}
+
+/* Title for input fields and filters */
+label,
+.input-label {
+  color: #ccc;
+}
+
+/* Optional yellow panel headers */
+.panel-title {
+  font-size: 1.4em;
+  font-weight: bold;
+  color: #f1c40f;
+  margin-bottom: 10px;
+  text-shadow: 0.5px 0.5px #222;
+}
+
+/* Panel title style used in your Config Tracker */
+.config-tracker-title {
+  font-size: 1.5em;
+  font-weight: bold;
+  text-align: center;
+  color: #ffffff;
+  padding: 10px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #2c3e50, #4ca1af);
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+  border: 1px solid #4ca1af;
+}

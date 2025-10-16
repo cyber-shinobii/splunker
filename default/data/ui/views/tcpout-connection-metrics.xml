@@ -1,0 +1,143 @@
+<form version="1.1" theme="dark" stylesheet="tcpout-connection-metrics.css">
+  <label>🔌 tcpout Connection Metrics</label>
+  <description>Track Splunk forwarding behavior across tcpout groups. Monitor connection status, throughput, and health metrics for troubleshooting and optimization.</description>
+  <search id="base_internal_metrics_search">
+    <query>
+      index=_internal source="*metrics.log*" group=tcpout_connections host=$host$ log_level=$log_level$
+      | eval group_name=mvindex(split(name, ":"),0)
+      | eval mb_processed=round(tcp_Kprocessed / 1024, 4)
+      | search group_name=$group_name$
+      | fields _time host group_name sourcePort destIp destPort tcp_eps tcp_Bps mb_processed log_level
+    </query>
+    <earliest>$time_tok.earliest$</earliest>
+    <latest>$time_tok.latest$</latest>
+  </search>
+  <search id="base_internal_metrics_filter_search">
+    <query>
+      index=_internal source="*metrics.log*" host=$host$ $search_filter_tok$ series!="$decideonstartup" | fields _time host series eps kbps
+    </query>
+    <earliest>$time_tok.earliest$</earliest>
+    <latest>$time_tok.latest$</latest>
+  </search>
+  <fieldset submitButton="false">
+    <input type="time" token="time_tok" searchWhenChanged="true">
+      <label>Time</label>
+      <default>
+        <earliest>-4h@m</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="dropdown" token="span_tok" searchWhenChanged="true">
+      <label>Time Span</label>
+      <choice value="1min">1min</choice>
+      <choice value="5min">5min</choice>
+      <choice value="15min">15min</choice>
+      <choice value="1h">1h</choice>
+      <choice value="4h">4h</choice>
+      <choice value="1d">1d</choice>
+      <default>1d</default>
+      <initialValue>1d</initialValue>
+    </input>
+    <input type="dropdown" token="group_name" searchWhenChanged="true">
+      <label>TCP Group</label>
+      <choice value="*">all</choice>
+      <default>*</default>
+      <prefix>"</prefix>
+      <suffix>"</suffix>
+      <fieldForLabel>group_name</fieldForLabel>
+      <fieldForValue>group_name</fieldForValue>
+      <search base="base_internal_metrics_search">
+        <query>| stats count by group_name</query>
+      </search>
+    </input>
+    <input type="dropdown" token="log_level" searchWhenChanged="true">
+      <label>Log Level</label>
+      <choice value="*">all</choice>
+      <prefix>"</prefix>
+      <suffix>"</suffix>
+      <fieldForLabel>log_level</fieldForLabel>
+      <fieldForValue>log_level</fieldForValue>
+      <search base="base_internal_metrics_search">
+        <query>| stats count by log_level</query>
+      </search>
+      <default>*</default>
+    </input>
+    <input type="text" token="host" searchWhenChanged="true">
+      <label>Host</label>
+      <default>*</default>
+      <prefix>"</prefix>
+      <suffix>"</suffix>
+    </input>
+    <input type="text" token="search_filter_tok" searchWhenChanged="true">
+      <label>Search Filter</label>
+      <default>*</default>
+      <prefix>"</prefix>
+      <suffix>"</suffix>
+      <initialValue>*</initialValue>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <html>
+        <h2 class="cool-title">🚀 Total KB Sent Over by Group</h2>
+      </html>
+      <chart>
+        <search base="base_internal_metrics_search">
+          <query>| timechart span=$span_tok$ sum(mb_processed) AS mb_processed BY group_name</query>
+        </search>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.visibility">collapsed</option>
+        <option name="charting.chart">column</option>
+        <option name="charting.drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+    <panel>
+      <html>
+        <h2 class="cool-title">🎯 TCPout Groups</h2>
+      </html>
+      <chart>
+        <search base="base_internal_metrics_search">
+          <query>| stats count by group_name</query>
+        </search>
+        <option name="charting.chart">pie</option>
+      </chart>
+    </panel>
+    <panel>
+      <html>
+        <h2 class="cool-title">📘 Log Levels</h2>
+      </html>
+      <chart>
+        <search base="base_internal_metrics_search">
+          <query>| stats count by log_level</query>
+        </search>
+        <option name="charting.chart">pie</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+        <h2 class="cool-title">📊 TCP Connection Details</h2>
+      </html>
+      <table>
+        <search base="base_internal_metrics_search">
+          <query>| stats count by _time host group_name sourcePort destIp destPort tcp_eps tcp_Bps</query>
+        </search>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+        <h2 class="cool-title">📁 Files Ingested</h2>
+      </html>
+      <table>
+        <search base="base_internal_metrics_filter_search">
+          <query>| stats count by _time host series eps kbps</query>
+        </search>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+  </row>
+</form>
